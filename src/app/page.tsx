@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -50,7 +50,24 @@ export type PortalViewMode = "landing" | "trader" | "lmo" | "gatc" | "admin";
 
 export default function LandingPage() {
   const router = useRouter();
-  const [activePortalView, setActivePortalView] = useState<PortalViewMode>("landing");
+  const [activePortalView, setPortalState] = useState<PortalViewMode>("landing");
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const portal = params.get("portal") as PortalViewMode | null;
+      setPortalState(portal || "landing");
+    };
+    handlePopState();
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const setActivePortalView = (view: PortalViewMode) => {
+    setPortalState(view);
+    const newUrl = view === "landing" ? window.location.pathname : `${window.location.pathname}?portal=${view}`;
+    window.history.pushState({}, "", newUrl);
+  };
   const [selectedRole, setSelectedRole] = useState<RoleType>("businessman");
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegModalOpen, setIsRegModalOpen] = useState(false);
@@ -282,7 +299,7 @@ export default function LandingPage() {
             </p>
 
             {/* Public Quick Verification Lookup Box */}
-            <div id="verification" className="bg-white p-5 sm:p-6 rounded-2xl shadow-card border border-slate-200/90 max-w-3xl mx-auto text-left mt-8 scroll-mt-28">
+            <div id="verification" className="bg-white p-5 sm:p-6 rounded-2xl shadow-card border border-slate-200/90 max-w-3xl mx-auto text-left mt-8 scroll-mt-48">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 text-xs font-semibold text-slate-700">
                 <span className="flex items-center gap-1.5 text-slate-800">
                   <QrCode className="w-4 h-4 text-blue-600" />
